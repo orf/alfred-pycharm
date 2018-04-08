@@ -104,7 +104,7 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string></string>
+	<string>Quickly open PyCharm projects via Alfred</string>
 	<key>uidata</key>
 	<dict>
 		<key>0853CD6D-2FD7-4DAB-A841-C3B4D4735365</key>
