@@ -5,7 +5,7 @@ import sys
 
 # Workflow3 supports Alfred 3's new features. The `Workflow` class
 # is also compatible with Alfred 2.
-from workflow import Workflow3
+from workflow import Workflow3, ICON_INFO
 import xml.etree.ElementTree as ET
 import os
 
@@ -25,6 +25,13 @@ def parse_start_script(path=LAUNCHER_DIR):
 
 
 def main(wf):
+    if wf.update_available:
+        # Add a notification to top of Script Filter results
+        wf.add_item('New version available',
+                    'Action this item to install the update',
+                    autocomplete='workflow:update',
+                    icon=ICON_INFO)
+
     pycharm_path, config_path = parse_start_script()
     home_dir = os.path.expanduser('~')
 
@@ -61,7 +68,9 @@ def main(wf):
 
 if __name__ == '__main__':
     # Create a global `Workflow3` object
-    wf = Workflow3()
+    wf = Workflow3(update_settings={
+        'github_slug': 'orf/alfred-pycharm',
+    })
     # Call your entry function via `Workflow3.run()` to enable its
     # helper functions, like exception catching, ARGV normalization,
     # magic arguments etc.
