@@ -1,16 +1,28 @@
 #!/usr/bin/python
 # encoding: utf-8
 
+import os
 import sys
+import re
 
 # Workflow3 supports Alfred 3's new features. The `Workflow` class
 # is also compatible with Alfred 2.
 from workflow import Workflow3, ICON_INFO
 import xml.etree.ElementTree as ET
-import os
 
-LAUNCHER_DIR = '/usr/local/bin/charm'
-RECENT_XPATH = ".//component[@name='RecentDirectoryProjectsManager']/option[@name='recentPaths']/list/option"
+BINARY = 'charm'  # can change to goland etc
+LAUNCHER_DIR = '/usr/local/bin/{}'.format(BINARY)
+
+OPTIONS = {
+    '2019': {
+        'RECENT_PROJECTS_XML': '/options/recentProjectDirectories.xml',
+        'RECENT_XPATH': ".//component[@name='RecentDirectoryProjectsManager']/option[@name='recentPaths']/list/option",
+    },
+    '2020': {
+        'RECENT_PROJECTS_XML': '/options/recentProjects.xml',
+        'RECENT_XPATH': ".//component[@name='RecentProjectsManager']/option[@name='recentPaths']/list/option",
+    },
+}
 
 
 def parse_start_script(path=LAUNCHER_DIR):
@@ -25,6 +37,10 @@ def parse_start_script(path=LAUNCHER_DIR):
 
 
 def main(wf):
+    pycharm_path, config_path = parse_start_script()
+    app_name = os.path.basename(config_path)
+    year = re.search(r'\w+(?P<year>\d\d\d\d)\.?\d*', app_name).groupdict()['year']
+    config = OPTIONS[year]
     if wf.update_available:
         # Add a notification to top of Script Filter results
         wf.add_item('New version available',
@@ -32,13 +48,12 @@ def main(wf):
                     autocomplete='workflow:update',
                     icon=ICON_INFO)
 
-    pycharm_path, config_path = parse_start_script()
     home_dir = os.path.expanduser('~')
 
-    root = ET.parse(config_path + '/options/recentProjectDirectories.xml')
+    root = ET.parse(config_path + config['RECENT_PROJECTS_XML'])
     project_paths = (
         el.attrib['value'].replace('$USER_HOME$', home_dir)
-        for el in root.findall(RECENT_XPATH)
+        for el in root.findall(config['RECENT_XPATH'])
     )
 
     paths_with_names = (
